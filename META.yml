@@ -1,16 +1,15 @@
----
-name: TRD-Velocity
-version: 0.0.3
-author:
-  - 'Takuya Ichikawa <trd.ichi@gmail.com>'
-abstract: "[One line description of module's purpose here]"
-license: perl
-resources:
-  license: http://dev.perl.org/licenses/
-requires:
-  Test::More: 0
-  version: 0
-generated_by: Module::Build version 0.2808
+--- #YAML:1.0
+name:                TRD-Velocity
+version:             0.0.4
+abstract:            Template engine
+license:             ~
+author:              
+    - Takuya Ichikawa <trd.ichi@gmail.com>
+generated_by:        ExtUtils::MakeMaker version 6.44
+distribution_type:   module
+requires:     
+    Test::More:                    0
+    version:                       0
 meta-spec:
-  url: http://module-build.sourceforge.net/META-spec-v1.2.html
-  version: 1.2
+    url:     http://module-build.sourceforge.net/META-spec-v1.3.html
+    version: 1.3

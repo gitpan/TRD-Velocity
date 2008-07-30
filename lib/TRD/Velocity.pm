@@ -5,7 +5,7 @@ use strict;
 use Carp;
 
 use version;
-our $VERSION = qv('0.0.3');
+our $VERSION = qv('0.0.4');
 our $debug = 0;
 
 #======================================================================
@@ -13,11 +13,12 @@ sub new {
 	my $pkg = shift;
 	bless {
 		params => undef,
-		templatefile => undef,
-		template => undef,
+		templateFile => undef,
+		templateData => undef,
 		contents => undef,
 		command => undef,
-		else => undef,
+		elsecommand => undef,
+		options => undef,
 	}, $pkg;
 };
 
@@ -36,15 +37,25 @@ sub setTemplateFile {
 	my $templateFile = shift;
 	my $fdata;
 
-	$self->{templatefile} = $templateFile;
+	$self->{templateFile} = $templateFile;
 
-	open( my $fh, '<', $self->{templatefile} )|| die $!;
+	open( my $fh, '<', $self->{templateFile} )|| die $!;
 	while( <$fh> ){
 		$fdata .= $_;
 	}
 	close( $fh );
 
-	$self->{template} = $fdata;
+	$self->{templateData} = $fdata;
+}
+
+#======================================================================
+sub setTemplateData {
+	my $self = shift;
+	my $templateData = shift;
+
+	$self->{templateFile} = undef;
+
+	$self->{templateData} = $templateData;
 }
 
 #======================================================================
@@ -52,7 +63,7 @@ sub marge {
 	my $self = shift;
 	my $contents;
 
-	$contents = $self->{template};
+	$contents = $self->{templateData};
 
 	if( $debug ){
 		$contents =~s/([\t| ]*##.*)\n/<!--${1}-->\n/g;
@@ -111,15 +122,15 @@ sub if_sub {
 		eval( $cmd ); ## no critic
 		if( $stat ){
 			if( $debug ){
-				$contents .= "<!-- if(${joken}) -->". $str. "<!-- else ". $self->{else}. " end-->";
+				$contents .= "<!-- if(${joken}) -->". $str. "<!-- else ". $self->{elsecommand}. " end-->";
 			} else {
 				$contents .= $str;
 			}
 		} else {
 			if( $debug ){
-				$contents .= "<!-- if(${joken}) ${str} else -->". $self->{else}. "<!-- end -->";
+				$contents .= "<!-- if(${joken}) ${str} else -->". $self->{elsecommand}. "<!-- end -->";
 			} else {
-				$contents .= $self->{else};
+				$contents .= $self->{elsecommand};
 			}
 		}
 	}
@@ -186,7 +197,7 @@ sub get_end {
 	my $mode = 0;
 
 	$self->{command} = '';
-	$self->{else} = '';
+	$self->{elsecommand} = '';
 
 	while( $self->{contents} ne '' ){
 		( $htm, $tag, $self->{contents} ) = split( /(#if|#foreach|#end|#else)/is, $self->{contents}, 2 );
@@ -212,7 +223,7 @@ sub get_end {
 	if( $mode == 0 ){
 		$self->{command} = $retstr;
 	} else {
-		$self->{else} = $retstr;
+		$self->{elsecommand} = $retstr;
 	}
 }
 
@@ -239,7 +250,7 @@ sub dump {
 
 	my $d = Dumpvalue->new();
 	$d->dumpValue( \$self->{params} );
-	print "templatefile=". $self->{templatefile}. "\n";
+	print "templatefile=". $self->{templateFile}. "\n";
 }
 
 1; # Magic true value required at end of module
@@ -247,17 +258,27 @@ __END__
 
 =head1 NAME
 
-TRD::Velocity - [One line description of module's purpose here]
+TRD::Velocity - Template engine
 
 
 =head1 VERSION
 
-This document describes TRD::Velocity version 0.0.1
+This document describes TRD::Velocity version 0.0.4
 
 
 =head1 SYNOPSIS
 
     use TRD::Velocity;
+
+	$velo = new TRD::Velocity;
+	$velo->setTemplateFile( 'foo.html' );
+	$velo->set( 'name', 'value' );
+	$html_stmt = $velo->marge();
+	$ct = length( $html_stmt );
+	print "Content-Type: text/html\n";
+	print "Content-Length: ${ct}\n";
+	print "\n";
+	print $html_stmt;
 
 =for author to fill in:
     Brief code example(s) here showing commonest usage(s).
@@ -267,6 +288,8 @@ This document describes TRD::Velocity version 0.0.1
   
 =head1 DESCRIPTION
 
+	This module is replace Template on TemplateString.
+	
 =for author to fill in:
     Write a full description of the module and its features here.
     Use subsections (=head2, =head3) as appropriate.
@@ -299,6 +322,9 @@ set parameter.
 
 =item setTemplateFile
 set Template file.
+
+=item setTemplateData
+set Template data.
 
 =item marge
 marge Template to parameters.
