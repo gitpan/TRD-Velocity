@@ -1,11 +1,9 @@
-Build.PL
 Changes
-lib/TRD/Velocity.pm
-Makefile.PL
 MANIFEST
+Makefile.PL
 README
-t/00.load.t
-t/perlcritic.t
+lib/TRD/Velocity.pm
+t/00-load.t
 t/pod-coverage.t
 t/pod.t
-META.yml
+META.yml                                 Module meta-data (added by MakeMaker)
