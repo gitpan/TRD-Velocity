@@ -9,11 +9,11 @@ TRD::Velocity - Template engine
 
 =head1 VERSION
 
-Version 0.0.5
+Version 0.0.6
 
 =cut
 
-our $VERSION = '0.0.5';
+our $VERSION = '0.0.6';
 our $debug = 0;
 
 =head1 SYNOPSIS
@@ -239,6 +239,8 @@ sub foreach_sub {
 	my $self = shift;
 	my( $contents, $cmd );
 
+	$contents = '';
+
 	$self->get_end();
 
 	if( $self->{command} =~m/^\((.*?)\)(.*)$/s ){
@@ -359,9 +361,16 @@ sub marge_val {
 sub dump {
 	my $self = shift;
 
+	use Dumpvalue;
+
 	my $d = Dumpvalue->new();
-	$d->dumpValue( \$self->{params} );
-	print "templatefile=". $self->{templateFile}. "\n";
+	print $d->dumpValue( \$self->{params} );
+	if( defined $self->{templateFile} ){
+		print "templateFile=". $self->{templateFile}. "\n";
+	}
+	if( defined $self->{templateData} ){
+		print "templateData=". $self->{templateData}. "\n";
+	}
 }
 
 
