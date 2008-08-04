@@ -2,7 +2,7 @@
 
 use strict;
 use warnings;
-use Test::More tests => 4;
+use Test::More tests => 7;
 
 BEGIN {
 	use_ok( 'TRD::Velocity' );
@@ -14,7 +14,13 @@ ok( $result, 'test_param' );
 $result = &test_if();
 ok( $result, 'test_if' );
 $result = &test_foreach();
-ok( $result , 'test_foreach' );
+ok( $result, 'test_foreach' );
+$result = &test_escape();
+ok( $result, 'test_escape' );
+$result = &test_escape2();
+ok( $result, 'test_escape2' );
+$result = &test_unescape();
+ok( $result, 'test_unescape' );
 
 sub test_param {
 	my $velo = new TRD::Velocity;
@@ -58,6 +64,69 @@ sub test_foreach {
 	my $doc = $velo->marge();
 
 	if( $doc eq 'TEST=OK1OK2OK3OK4OK5OK6OK7OK8OK9OK10' ){
+		# ok
+		1;
+	} else {
+		# ng
+		undef;
+	}
+}
+
+sub test_escape {
+	my $velo = new TRD::Velocity;
+	my $templ= 'TEST=${test}';
+	$velo->setTemplateData( $templ );
+
+	my $test = qq!<>&'"!;
+	$velo->set( 'test', $test );
+
+	my $doc = $velo->marge();
+
+#	print STDERR "doc=${doc}\n";
+
+	if( $doc eq 'TEST=&lt;&gt;&amp;&#39;&quot;' ){
+		# ok
+		1;
+	} else {
+		# ng
+		undef;
+	}
+}
+
+sub test_escape2 {
+	my $velo = new TRD::Velocity;
+	my $templ= 'TEST=${test}.escape()';
+	$velo->setTemplateData( $templ );
+
+	my $test = qq!<>&'"!;
+	$velo->set( 'test', $test );
+
+	my $doc = $velo->marge();
+
+#	print STDERR "doc=${doc}\n";
+
+	if( $doc eq 'TEST=&lt;&gt;&amp;&#39;&quot;' ){
+		# ok
+		1;
+	} else {
+		# ng
+		undef;
+	}
+}
+
+sub test_unescape {
+	my $velo = new TRD::Velocity;
+	my $templ= 'TEST=${test}.unescape()';
+	$velo->setTemplateData( $templ );
+
+	my $test = qq!<>&'"!;
+	$velo->set( 'test', $test );
+
+	my $doc = $velo->marge();
+
+#	print STDERR "doc=${doc}\n";
+
+	if( $doc eq 'TEST=<>&\'"' ){
 		# ok
 		1;
 	} else {

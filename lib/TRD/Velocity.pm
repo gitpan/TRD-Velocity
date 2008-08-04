@@ -9,11 +9,11 @@ TRD::Velocity - Template engine
 
 =head1 VERSION
 
-Version 0.0.6
+Version 0.0.7
 
 =cut
 
-our $VERSION = '0.0.6';
+our $VERSION = '0.0.7';
 our $debug = 0;
 
 =head1 SYNOPSIS
@@ -139,6 +139,8 @@ sub marge {
 	}
 
 	$contents = $self->tag_handler( $contents );
+	$contents =~s/\${(.+?)}\.escape\(\)/$self->marge_val( $1. '.escape()' )/egos;
+	$contents =~s/\${(.+?)}\.unescape\(\)/$self->marge_val( $1. '.unescape()' )/egos;
 	$contents =~s/\${(.+?)}/$self->marge_val( $1 )/egos;
 
 	$contents;
@@ -340,14 +342,28 @@ sub marge_val {
 	my $self = shift;
 	my $ch_name = shift;
 	my $retstr;
+	my $escape = 1;
 
 	my $param = $ch_name;
+	if( $param =~s/\.escape\(\)$//g ){
+		$escape = 1;
+	} elsif( $param =~s/\.unescape\(\)$//g ){
+		$escape = 0;
+	}
 	$param =~s/(\w+)/\{${1}\}/g;
 	$param =~s/\[\{(\d+)\}\]/\[${1}\]/g;
 	$param =~s/\./->/g;
 	$param = '$self->{params}->'. $param;
 	my $cmd = qq!\$retstr = $param;!;
 	eval( $cmd ); ## no critic
+	if( $escape ){
+		$retstr =~s/&/&amp;/g;
+		$retstr =~s/"/&quot;/g;
+		$retstr =~s/'/&#39;/g;
+		$retstr =~s/</&lt;/g;
+		$retstr =~s/>/&gt;/g;
+	}
+#print STDERR "\$ch_name=${ch_name}, \$param=${param}, \$escape=${escape}\n";
 
 	$retstr;
 }
