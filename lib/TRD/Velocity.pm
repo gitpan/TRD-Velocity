@@ -1,6 +1,6 @@
 package TRD::Velocity;
 
-use warnings;
+#use warnings;
 use strict;
 
 =head1 NAME
@@ -9,11 +9,11 @@ TRD::Velocity - Template engine
 
 =head1 VERSION
 
-Version 0.0.7
+Version 0.0.8
 
 =cut
 
-our $VERSION = '0.0.7';
+our $VERSION = '0.0.8';
 our $debug = 0;
 
 =head1 SYNOPSIS
@@ -139,9 +139,9 @@ sub marge {
 	}
 
 	$contents = $self->tag_handler( $contents );
-	$contents =~s/\${(.+?)}\.escape\(\)/$self->marge_val( $1. '.escape()' )/egos;
-	$contents =~s/\${(.+?)}\.unescape\(\)/$self->marge_val( $1. '.unescape()' )/egos;
-	$contents =~s/\${(.+?)}/$self->marge_val( $1 )/egos;
+	$contents =~s/\${([\w\.-\[\]]+)}\.escape\(\)/$self->marge_val( $1. '.escape()' )/egos;
+	$contents =~s/\${([\w\.-\[\]]+)}\.unescape\(\)/$self->marge_val( $1. '.unescape()' )/egos;
+	$contents =~s/\${([\w\.-\[\]]+)}/$self->marge_val( $1 )/egos;
 
 	$contents;
 }
@@ -203,12 +203,19 @@ sub if_sub {
 		$joken = $1;
 		$str = $2;
 
-		if( ($joken =~s/\$(\w+)\[(\d+)\]\.(\w+)\[(\d+)\]\.(\w+)/\$self->{params}->{$1}[$2]->{$3}[$4]->{$5}/g) ){
-		} elsif( ($joken =~s/\$(\w+)\[(\d+)\]\.(\w+)/\$self->{params}->{$1}[$2]->{$3}/g) ){
-		} elsif( ($joken =~s/\$(\w+)\.(\w+)/\$self->{params}->{$1}->{$2}/g) ){
-		} else {
-			$joken =~s/\$(\w+)/\$self->{params}->{$1}/g;
+		my @jokens = split( ' ', $joken );
+		for( my $i=0; $i<scalar( @jokens ); $i++ ){
+			my $joken = $jokens[$i];
+			if( ($joken =~s/\$([\w\.-]+)\[(\d+)\]\.([\w\.-]+)\[(\d+)\]\.([\w\.-]+)/\$self->{params}->{$1}[$2]->{$3}[$4]->{$5}/g) ){
+			} elsif( ($joken =~s/\$([\w\.-]+)\[(\d+)\]\.([\w\.-]+)/\$self->{params}->{$1}[$2]->{$3}/g) ){
+			} elsif( ($joken =~s/\$([\w\.-]+)\.([\w\.-]+)/\$self->{params}->{$1}->{$2}/g) ){
+			} elsif( ($joken =~s/\$([\w\.-]+)/\$self->{params}->{$1}/g) ){
+			} else {
+			}
+			$jokens[$i] = $joken;
 		}
+		$joken = join( ' ', @jokens );
+#print STDERR "joken=${joken}\n";
 
 		$stat = 0;
 		$cmd = qq!\$stat = 1 if( $joken );!;
@@ -357,11 +364,13 @@ sub marge_val {
 	my $cmd = qq!\$retstr = $param;!;
 	eval( $cmd ); ## no critic
 	if( $escape ){
-		$retstr =~s/&/&amp;/g;
-		$retstr =~s/"/&quot;/g;
-		$retstr =~s/'/&#39;/g;
-		$retstr =~s/</&lt;/g;
-		$retstr =~s/>/&gt;/g;
+		if( defined( $retstr ) ){
+			$retstr =~s/&/&amp;/g;
+			$retstr =~s/"/&quot;/g;
+			$retstr =~s/'/&#39;/g;
+			$retstr =~s/</&lt;/g;
+			$retstr =~s/>/&gt;/g;
+		}
 	}
 #print STDERR "\$ch_name=${ch_name}, \$param=${param}, \$escape=${escape}\n";
 
@@ -438,7 +447,7 @@ L<http://search.cpan.org/dist/TRD-Velocity>
 
 =head1 COPYRIGHT & LICENSE
 
-Copyright 2008 Takuya Ichikawa, all rights reserved.
+Copyright 2010 Takuya Ichikawa, all rights reserved.
 
 This program is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.
